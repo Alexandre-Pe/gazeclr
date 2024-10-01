@@ -1,11 +1,21 @@
 {
-    "model": "gazeclr",
+    "model_name": "gazeclr",
 
     "temperature": 0.1,
 
     "face_size": [128, 128],
 
     "out_dim": 180,
-    "projection_dim": 512
-
+    "projection_dim": 512,
+    "model_params": {
+        "baseline": "efficientnetb0",
+        "transformer": true,
+        "maps": 64,
+        "nhead": 2,
+        "dim_feature": 49,
+        "dim_feedforward": 512,
+        "dropout": 0.1,
+        "num_layers": 1,
+        "mlp_hidden_size": 128
+    }
 }
