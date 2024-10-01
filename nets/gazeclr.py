@@ -1,8 +1,10 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import torchvision.models as models
 from losses.contrastive_loss import ContrastiveLoss
+
+from base_network import ResNet, EfficientNet
+from gazetr_model import GazeTR
 
 class BaseSimCLRException(Exception):
     """Base exception"""
@@ -25,14 +27,11 @@ class GazeCLR(nn.Module):
     def __init__(self, config):
         super(GazeCLR, self).__init__()
 
-        base_model = config.arch
+        base_model = config.model.baseline
         out_dim = config.out_dim
         self.substring = 'face'
 
-        self.resnet_dict = {"resnet18": models.resnet18(pretrained=False, num_classes=out_dim),
-                            "resnet50": models.resnet50(pretrained=False, num_classes=out_dim)}
-
-        self.backbone = self._get_basemodel(base_model)
+        self.backbone = self._get_basemodel(base_model, config)
         dim_mlp = self.backbone.fc.in_features
         self.backbone.fc = Identity()
 
@@ -45,14 +44,23 @@ class GazeCLR(nn.Module):
             nn.Linear(config.projection_dim, out_dim, bias=False),
         )
 
-    def _get_basemodel(self, model_name):
-        try:
-            model = self.resnet_dict[model_name]
-        except KeyError:
-            raise InvalidBackboneError(
-                "Invalid backbone architecture. Check the config file and pass one of: resnet18 or resnet50")
+    def _get_basemodel(self, model_name, config):
+        if config.model.transformer:
+            model = GazeTR( config.model.baseline, 
+                            config.model.maps, 
+                            config.model.nhead, 
+                            config.model.dim_feature, 
+                            config.model.dim_feedforward, 
+                            config.model.dropout, 
+                            config.model.num_layers, 
+                            config.model.mlp_hidden_size)
+        elif "resnet" in model_name:
+            model = ResNet(name=model_name, projection_head={"mlp_hidden_size": config.model.mlp_hidden_size, "projection_size": config.model.maps})
+        elif "efficientnet" in model_name:
+            model = EfficientNet(name=model_name, projection_head={"mlp_hidden_size": config.model.mlp_hidden_size, "projection_size": config.model.maps})
         else:
-            return model
+            raise InvalidBackboneError(f"Model {model_name} not available.")
+        return model
 
     def get_embeddings(self, x, last_layer=False):
         if last_layer is True:
