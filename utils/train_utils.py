@@ -118,15 +118,15 @@ def init_datasets(train_specs, test_specs, config, logger, num_positives=0,
 
 def get_training_model(args, device):
 
-    if args.model == 'gazeclr':
+    if args.model_name == 'gazeclr':
         from nets.gazeclr import TrainGazeCLR
         model = TrainGazeCLR(args, device)
 
-    elif args.model == 'gazeclrinvequiv':
+    elif args.model_name == 'gazeclrinvequiv':
         from nets.gazeclr_inv_equiv import TrainGazeCLRInvEq
         model = TrainGazeCLRInvEq(args, device)
 
     else:
-        raise NotImplementedError
+        raise ValueError(f"Model {args.model_name} not available.")
 
     return model
