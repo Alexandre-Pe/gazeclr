@@ -1,5 +1,6 @@
 from torchvision import models
 from torch import nn
+from gazeclr import InvalidBackboneError
 
 class MLPHead(nn.Module):
     """
@@ -68,10 +69,13 @@ class ResNet(nn.Module):
         elif kwargs['name'] == 'resnet50':
             resnet = models.resnet50(pretrained=False)
         else:
-            raise ValueError(f"Model {kwargs['name']} not available.")
+            raise InvalidBackboneError(f"Model {kwargs['name']} not available.")
 
         self.encoder = nn.Sequential(*list(resnet.children())[:-1])
-        self.projection = MLPHead(in_channels=resnet.fc.in_features, **kwargs['projection_head'])
+        if kwargs['projection_head']:
+            self.projection = MLPHead(in_channels=resnet.fc.in_features, **kwargs['projection_head'])
+        else:
+            self.projection = nn.Identity()
 
     def forward(self, x):
         h = self.encoder(x)
@@ -127,10 +131,13 @@ class EfficientNet(nn.Module):
         elif kwargs['name'] == 'efficientnet_b7':
             efficientnet = models.efficientnet_b7(weights=None)
         else:
-            raise ValueError(f"Model {kwargs['name']} not available.")
+            raise InvalidBackboneError(f"Model {kwargs['name']} not available.")
 
         self.encoder = nn.Sequential(*list(efficientnet.children())[:-1])
-        self.projection = MLPHead(in_channels=efficientnet.classifier[1].in_features, **kwargs['projection_head'])
+        if kwargs['projection_head']:
+            self.projection = MLPHead(in_channels=efficientnet.classifier[1].in_features, **kwargs['projection_head'])
+        else:
+            self.projection = nn.Identity()
 
     def forward(self, x):
         h = self.encoder(x)
