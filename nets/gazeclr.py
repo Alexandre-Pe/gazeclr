@@ -28,7 +28,7 @@ class GazeCLR(nn.Module):
         super(GazeCLR, self).__init__()
 
         base_model = config.model.baseline
-        out_dim = config.out_dim
+        out_dim = config.model.out_dim
         self.substring = 'face'
 
         self.backbone = self._get_basemodel(base_model, config)
@@ -47,13 +47,14 @@ class GazeCLR(nn.Module):
     def _get_basemodel(self, model_name, config):
         if config.model.transformer:
             model = GazeTR( config.model.baseline, 
-                            config.model.maps, 
+                            config.model.maps,
                             config.model.nhead, 
                             config.model.dim_feature, 
                             config.model.dim_feedforward, 
                             config.model.dropout, 
                             config.model.num_layers, 
-                            config.model.mlp_hidden_size)
+                            config.model.mlp_hidden_size,
+                            config.model.out_dim)
         elif "resnet" in model_name:
             model = ResNet(name=model_name, projection_head={"mlp_hidden_size": config.model.mlp_hidden_size, "projection_size": config.model.maps})
         elif "efficientnet" in model_name:
