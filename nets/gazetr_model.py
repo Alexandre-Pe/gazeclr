@@ -131,7 +131,7 @@ class GazeTR(nn.Module):
             Returns:
                 torch.Tensor: The estimated gaze.
     """
-    def __init__(self, model_name, maps, nhead, dim_feature, dim_feedforward, dropout, num_layers, mlp_hidden_size, gaze_dim=2):
+    def __init__(self, model_name, maps, nhead, dim_feature, dim_feedforward, dropout, num_layers, mlp_hidden_size, out_dim=2):
         super(GazeTR, self).__init__()
 
         # self.base_model
@@ -162,7 +162,7 @@ class GazeTR(nn.Module):
 
         self.pos_embedding = nn.Embedding(dim_feature+1, maps)
 
-        self.feed = nn.Linear(maps, gaze_dim)
+        self.feed = nn.Linear(maps, out_dim)
 
     def forward(self, x_in):
         feature = self.base_model(x_in["face"])
